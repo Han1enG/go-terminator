@@ -5,7 +5,8 @@ package graceful
 
 import (
 	"context"
-	"fmt"
+
+	"log"
 
 	"github.com/pkg/errors"
 )
@@ -26,7 +27,7 @@ func (m *manager) Start() error {
 	go func() {
 		select {
 		case sig := <-sigChan:
-			fmt.Printf("Received signal: %v\n", sig)
+			log.Printf("Received signal: %v\n", sig)
 			close(m.shutdownChan)
 		case <-m.shutdownChan:
 			// 已通过Stop()手动触发

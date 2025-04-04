@@ -5,8 +5,8 @@ package signals
 
 import (
 	"context"
-	"fmt"
 	"io"
+	"log"
 	"net"
 	"os"
 	"os/signal"
@@ -42,15 +42,15 @@ func (h *WindowsSignalHandler) GetShutdownSignals() []os.Signal {
 
 // CreateNamedPipe 创建Windows命名管道
 func (h *WindowsSignalHandler) CreateNamedPipe() error {
-	pipeCfg := &winio.PipeConfig{
-		SecurityDescriptor: "D:P(A;;GA;;;BA)(A;;GA;;;SY)",
-		MessageMode:        true,
-		InputBufferSize:    1024,
-		OutputBufferSize:   1024,
-	}
+	// pipeCfg := &winio.PipeConfig{
+	// 	SecurityDescriptor: "D:P(A;;GA;;;BA)(A;;GA;;;SY)",
+	// 	MessageMode:        true,
+	// 	InputBufferSize:    1024,
+	// 	OutputBufferSize:   1024,
+	// }
 
 	var err error
-	h.pipeListener, err = winio.ListenPipe(PipeName, pipeCfg)
+	h.pipeListener, err = winio.ListenPipe(PipeName, nil)
 	return err
 }
 
@@ -64,7 +64,7 @@ func (h *WindowsSignalHandler) SetupSignalHandler() <-chan os.Signal {
 // HandlePipeConnections 处理来自命名管道的连接
 func (h *WindowsSignalHandler) HandlePipeConnections(shutdownChan chan struct{}) {
 	if h.pipeListener == nil {
-		fmt.Println("Pipe listener not initialized")
+		log.Println("Pipe listener not initialized")
 		return
 	}
 
@@ -76,7 +76,7 @@ func (h *WindowsSignalHandler) HandlePipeConnections(shutdownChan chan struct{})
 			case <-shutdownChan:
 				return
 			default:
-				fmt.Printf("Pipe accept error: %v\n", err)
+				log.Printf("Pipe accept error: %v\n", err)
 				continue
 			}
 		}
@@ -87,12 +87,12 @@ func (h *WindowsSignalHandler) HandlePipeConnections(shutdownChan chan struct{})
 			buf := make([]byte, 1024)
 			n, err := conn.Read(buf)
 			if err != nil {
-				fmt.Printf("Pipe read error: %v\n", err)
+				log.Printf("Pipe read error: %v\n", err)
 				return
 			}
 
 			if string(buf[:n]) == "SHUTDOWN" {
-				fmt.Println("Received shutdown command through pipe")
+				log.Println("Received shutdown command through pipe")
 				close(shutdownChan)
 			}
 		}(conn)

@@ -2,7 +2,7 @@ package graceful
 
 import (
 	"context"
-	"fmt"
+	"log"
 	"sync"
 	"time"
 
@@ -91,12 +91,12 @@ func (m *manager) executeHooks(ctx context.Context) {
 			hookCtx, cancel := context.WithTimeout(ctx, timeout)
 			defer cancel()
 
-			fmt.Printf("Executing hook: %s\n", name)
+			log.Printf("Executing hook: %s\n", name)
 			err := hook.Execute(hookCtx)
 			if err != nil {
-				fmt.Printf("Hook %s failed: %v\n", name, err)
+				log.Printf("Hook %s failed: %v\n", name, err)
 			} else {
-				fmt.Printf("Hook %s completed successfully\n", name)
+				log.Printf("Hook %s completed successfully\n", name)
 			}
 		}(name, entry.hook, entry.timeout)
 	}
